@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="am" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0f4c75">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ተክለሥላሴ ሰ/ት/ቤት | ዘመናዊ የመቅረት ሪፖርት</title>
+    
+    <!-- የጉግል ፎንት (Google Fonts) - ለኢትዮጵያ ፊደላት የተስተካከለ -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- አይኮኖች (FontAwesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- የQR ኮድ ስካነር -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+    <style>
+        /* =========================================================
+           1. ዋና የቀለም እና የዲዛይን ቅንብሮች (CSS Variables)
+           ========================================================= */
+        :root {
+            /* Light Theme (የቀን ገፅታ) */
+            --bg-color: #f4f7f6;
+            --surface-color: #ffffff;
+            --primary-color: #0f4c75;
+            --secondary-color: #3282b8;
+            --accent-color: #f9a826; /* Gold color for Orthodox feel */
+            --text-main: #1b262c;
+            --text-muted: #6c757d;
+            --success: #28a745;
+            --danger: #dc3545;
+            --border-radius-lg: 24px;
+            --border-radius-md: 16px;
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+            --scanner-line: rgba(50, 130, 184, 0.8);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme (የማታ ገፅታ) */
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-color: #1f4068;
+            --secondary-color: #3282b8;
+            --accent-color: #f9a826;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --success: #00e676;
+            --danger: #ff5252;
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        /* =========================================================
+           2. አጠቃላይ የገፅ ማስተካከያ (Base Styles)
+           ========================================================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans Ethiopic', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* =========================================================
+           3. ራስጌ (Header)
+           ========================================================= */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 25px 20px 30px;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        
+        .header-title h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .header-title h1 i { color: var(--accent-color); }
+        .header-title p { font-size: 0.85rem; opacity: 0.9; font-weight: 300; }
+
+        .theme-toggle {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .theme-toggle:active { transform: scale(0.9); }
+
+        /* =========================================================
+           4. ዋናው ክፍል (Main Content Area)
+           ========================================================= */
+        main { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; margin-top: -20px; z-index: 20; }
+
+        .card {
+            background-color: var(--surface-color);
+            width: 100%;
+            max-width: 500px;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        /* =========================================================
+           5. የካሜራ ስካነር ዲዛይን (Custom Scanner UI)
+           ========================================================= */
+        .scanner-header { text-align: center; margin-bottom: 20px; }
+        .scanner-header h2 { font-size: 1.2rem; margin-bottom: 5px; color: var(--text-main); }
+        .scanner-header p { font-size: 0.9rem; color: var(--text-muted); }
+
+        .scanner-container {
+            position: relative;
+            width: 100%;
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            background-color: #000;
+            aspect-ratio: 1/1;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #qr-reader { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Default buttons hiding from library */
+        #qr-reader img { display: none; }
+        #qr-reader__dashboard_section_csr span { color: var(--text-main) !important; }
+
+        /* Scanning Animation Line */
+        .scan-line {
+            position: absolute;
+            width: 90%;
+            height: 3px;
+            background: var(--accent-color);
+            box-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
+            top: 5%;
+            left: 5%;
+            animation: scan 2.5s infinite linear;
+            z-index: 2;
+            display: none;
+            border-radius: 50%;
+        }
+
+        @keyframes scan {
+            0% { top: 5%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 95%; opacity: 0; }
+        }
+
+        /* Scanner Overlay Frame */
+        .scanner-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border: 40px solid rgba(0,0,0,0.4);
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .scanner-corners {
+            position: absolute;
+            top: 15%; left: 15%; right: 15%; bottom: 15%;
+            border: 2px solid transparent;
+            z-index: 3;
+        }
+        .scanner-corners::before, .scanner-corners::after,
+        .scanner-corners span::before, .scanner-corners span::after {
+            content: ''; position: absolute; width: 30px; height: 30px; border-color: var(--accent-color); border-style: solid;
+        }
+        .scanner-corners::before { top: 0; left: 0; border-width: 4px 0 0 4px; }
+        .scanner-corners::after { top: 0; right: 0; border-width: 4px 4px 0 0; }
+        .scanner-corners span::before { bottom: 0; left: 0; border-width: 0 0 4px 4px; }
+        .scanner-corners span::after { bottom: 0; right: 0; border-width: 0 4px 4px 0; }
+
+        /* Control Buttons */
+        .controls { display: flex; gap: 10px; margin-top: 20px; }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-secondary { background-color: rgba(50, 130, 184, 0.1); color: var(--primary-color); border: 1px solid var(--secondary-color); }
+        .btn:active { transform: translateY(2px); opacity: 0.9; }
+        [data-theme="dark"] .btn-secondary { color: var(--accent-color); border-color: var(--accent-color); }
+
+        /* =========================================================
+           6. ውጤት ማሳያ እና ፎርም (Result Bottom Sheet / Form)
+           ========================================================= */
+        #result-section { display: none; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(50, 130, 184, 0.05);
+            border-radius: var(--border-radius-md);
+            margin-bottom: 20px;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .user-info h3 { font-size: 1.2rem; color: var(--text-main); margin-bottom: 4px; }
+        .user-info p { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
+        .user-info span { color: var(--accent-color); }
+
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-group label { display: block; font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
+        
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: var(--border-radius-md);
+            font-size: 1rem;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 120px;
+            resize: vertical;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        [data-theme="dark"] textarea { border-color: #333; }
+        
+        textarea:focus { outline: none; border-color: var(--secondary-color); box-shadow: 0 0 0 4px rgba(50, 130, 184, 0.1); }
+        
+        .char-count { position: absolute; bottom: 12px; right: 15px; font-size: 0.75rem; color: var(--text-muted); }
+
+        .btn-submit { background-color: var(--success); color: white; margin-bottom: 10px; width: 100%; }
+        .btn-danger { background-color: transparent; color: var(--danger); }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none; width: 20px; height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%; border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* =========================================================
+           7. ቶስት መልዕክት (Toast Notifications)
+           ========================================================= */
+        #toast-container {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px;
+        }
+
+        .toast {
+            background-color: var(--surface-color);
+            color: var(--text-main);
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 600;
+            transform: translateY(-50px);
+            opacity: 0;
+            animation: toastEnter 0.4s forwards;
+            border-left: 6px solid;
+        }
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.warning { border-left-color: var(--accent-color); }
+        
+        .toast-icon { font-size: 1.5rem; }
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error .toast-icon { color: var(--danger); }
+
+        @keyframes toastEnter {
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes toastLeave {
+            to { transform: translateY(-50px); opacity: 0; }
+        }
+
+        /* ጫማ (Footer) */
+        footer { text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.8rem; margin-top: auto; }
+
+    </style>
+</head>
+<body>
+
+    <!-- ራስጌ (Header) -->
+    <header>
+        <div class="header-top">
+            <div class="header-title">
+                <h1><i class="fa-solid fa-church"></i> ተክለሥላሴ ሰ/ት/ቤት</h1>
+                <p>የመዝሙር ክፍል ዲጂታል ፈቃድ መጠየቅያ</p>
+            </div>
+            <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" aria-label="Toggle Theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ዋናው ክፍል -->
+    <main>
+        
+        <!-- 1. ስካን ማድረጊያ ክፍል -->
+        <div class="card" id="scanner-section">
+            <div class="scanner-header">
+                <h2>መታወቂያዎን ስካን ያድርጉ</h2>
+                <p>የመታወቂያውን QR ኮድ ወደ ካሜራው ያቅርቡ</p>
+            </div>
+
+            <div class="scanner-container">
+                <div id="qr-reader"></div>
+                <div class="scanner-overlay"></div>
+                <div class="scanner-corners"><span></span></div>
+                <div class="scan-line" id="scan-line"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="startScanner()" id="start-btn">
+                    <i class="fa-solid fa-camera"></i> ካሜራ ክፈት
+                </button>
+                <!-- File upload button hidden behind the label for custom styling -->
+                <label for="qr-file" class="btn btn-secondary" style="margin:0;">
+                    <i class="fa-solid fa-image"></i> ከጋለሪ አስገባ
+                </label>
+                <input type="file" id="qr-file" accept="image/*" style="display: none;" onchange="handleFileUpload(event)">
+            </div>
+        </div>
+
+        <!-- 2. መረጃ እና ምክንያት መሙያ ክፍል -->
+        <div class="card" id="result-section">
+            
+            <div class="user-profile">
+                <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                <div class="user-info">
+                    <h3 id="display-name">ስም የለም</h3>
+                    <p>መታወቂያ: <span id="display-id">---</span></p>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="reason-input"><i class="fa-solid fa-pen-to-square"></i> የማይመጡበትን ምክንያት ይፃፉ፡</label>
+                <textarea id="reason-input" placeholder="ምሳሌ፡ በህመም ምክንያት፣ ከስራ ባለመመቸቱ..." oninput="updateCharCount(this)"></textarea>
+                <div class="char-count" id="char-count">0/200</div>
+            </div>
+
+            <button class="btn btn-submit" onclick="submitToTelegram()" id="submit-btn">
+                <span id="submit-text"><i class="fa-regular fa-paper-plane"></i> ሪፖርት ላክ</span>
+                <div class="spinner" id="submit-spinner"></div>
+            </button>
+            
+            <button class="btn btn-danger" onclick="resetApp()">
+                <i class="fa-solid fa-arrow-rotate-left"></i> ሰርዝ እና እንደገና ስካን አድርግ
+            </button>
+        </div>
+
+    </main>
+
+    <!-- ቶስት መልዕክቶች መያዣ -->
+    <div id="toast-container"></div>
+
+    <footer>
+        <p>&copy; 2018 ተክለሥላሴ ሰንበት ትምህርት ቤት። በቴክኖሎጂ የተደገፈ አገልግሎት።</p>
+    </footer>
+
+    <!-- =========================================================
+         ጃቫስክሪፕት (JavaScript Logic)
+         ========================================================= -->
+    <script>
+        // --- 1. የቦት ማዋቀሪያ (Configuration) ---
+        // እባክዎ እነዚህ መረጃዎች ትክክል መሆናቸውን አረጋግጠዋል (ከጥያቄዎ የተወሰዱ ናቸው)
+        const TELEGRAM_BOT_TOKEN = '8594807701:AAFWS4B7brfq7FehtCXBjTekLAXwMO1xQVQ';
+        const ADMIN_CHAT_ID = '8395905771';
+
+        // --- 2. ግሎባል ተለዋዋጮች (Global Variables) ---
+        let html5QrCode;
+        let scannedUserData = { id: '', name: '' };
+        let isScanning = false;
+
+        // --- 3. ዳርክ ሞድ ማስተካከያ (Theme Management) ---
+        function toggleTheme() {
+            const body = document.documentElement;
+            const themeBtn = document.querySelector('#theme-btn i');
+            
+            if (body.getAttribute('data-theme') === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                themeBtn.className = 'fa-solid fa-sun';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeBtn.className = 'fa-solid fa-moon';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // ሲከፈት የነበረውን ቲም መመለስ
+        if(localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.querySelector('#theme-btn i').className = 'fa-solid fa-sun';
+        }
+
+        // --- 4. ቶስት መልዕክት ማሳያ (Toast Notification System) ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-circle-exclamation' : 'fa-triangle-exclamation');
+            
+            toast.innerHTML = `
+                <i class="fa-solid ${icon} toast-icon"></i>
+                <div style="flex:1;">${message}</div>
+            `;
+            
+            container.appendChild(toast);
+
+            // ከ 4 ሰከንድ በኋላ መልዕክቱን ማጥፋት
+            setTimeout(() => {
+                toast.style.animation = 'toastLeave 0.4s forwards';
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
+
+        // --- 5. ጽሁፍ መቁጠሪያ (Textarea Character Counter) ---
+        function updateCharCount(textarea) {
+            const maxLength = 200;
+            const currentLength = textarea.value.length;
+            const counter = document.getElementById('char-count');
+            
+            if (currentLength > maxLength) {
+                textarea.value = textarea.value.substring(0, maxLength); // መገደብ
+            }
+            counter.innerText = `${textarea.value.length}/${maxLength}`;
+            
+            if (textarea.value.length >= maxLength) {
+                counter.style.color = 'var(--danger)';
+            } else {
+                counter.style.color = 'var(--text-muted)';
+            }
+        }
+
+        // --- 6. ስካነር ማስጀመር (Initialize Scanner) ---
+        async function startScanner() {
+            if (isScanning) return;
+            
+            const btn = document.getElementById('start-btn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ካሜራ እየከፈተ...';
+            
+            try {
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("qr-reader");
+                }
+
+                const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+                
+                // የጀርባ ካሜራ (Back Camera) ለመጠቀም መሞከር
+                await html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure);
+                
+                isScanning = true;
+                document.getElementById('scan-line').style.display = 'block';
+                btn.innerHTML = '<i class="fa-solid fa-camera"></i> ካሜራ ክፍት ነው';
+                btn.className = 'btn btn-secondary'; // ስታይል መቀየር
+                
+            } catch (err) {
+                console.error("Camera Error:", err);
+                showToast("ካሜራ መክፈት አልተቻለም። ፍቃድ መስጠትዎን ያረጋግጡ!", "error");
+                btn.innerHTML = '<i class="fa-solid fa-camera"></i> ካሜራ ክፈት';
+            }
+        }
+
+        // ስካን ማድረጊያውን ማቆም
+        async function stopScanner() {
+            if (html5QrCode && isScanning) {
+                try {
+                    await html5QrCode.stop();
+                    isScanning = false;
+                    document.getElementById('scan-line').style.display = 'none';
+                    const btn = document.getElementById('start-btn');
+                    btn.innerHTML = '<i class="fa-solid fa-camera"></i> ካሜራ ክፈት';
+                    btn.className = 'btn btn-primary';
+                } catch (err) {
+                    console.error("Failed to stop scanner.", err);
+                }
+            }
+        }
+
+        // ከጋለሪ ፎቶ በማስገባት ስካን ማድረግ (File Upload)
+        async function handleFileUpload(event) {
+            if (event.target.files.length === 0) return;
+            
+            const imageFile = event.target.files[0];
+            
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+            }
+
+            try {
+                // ካሜራ እየሰራ ከሆነ ማቆም
+                if (isScanning) await stopScanner();
+                
+                showToast("ፎቶው እየተነበበ ነው...", "warning");
+                
+                const decodedText = await html5QrCode.scanFile(imageFile, true);
+                onScanSuccess(decodedText);
+                
+            } catch (err) {
+                showToast("በፎቶው ላይ QR ኮድ አልተገኘም! ሌላ ፎቶ ይሞክሩ።", "error");
+            }
+            
+            // ፋይል ማስገቢያውን ሪሴት ማድረግ (ተመሳሳይ ፎቶ ደግሞ ለማስገባት እንዲያስችል)
+            event.target.value = "";
+        }
+
+        // --- 7. QR ኮዱ በትክክል ሲነበብ የሚሰራ (Scan Success Handling) ---
+        function onScanSuccess(decodedText, decodedResult) {
+            // ስልክ እንዲንቀጠቀጥ ማድረግ (Haptic Feedback)
+            if (navigator.vibrate) navigator.vibrate(200);
+
+            // ስካነሩን ማቆም
+            stopScanner();
+
+            // ⚠️ እዚህ ላይ የQR ኮድዎን ቅርፀት (Format) መለየት
+            // ምሳሌ፡ "ID-1234|አበበ ከበደ" እንደሆነ እናስባለን
+            try {
+                const parts = decodedText.split('|');
+                if (parts.length >= 2) {
+                    scannedUserData.id = parts[0].trim();
+                    scannedUserData.name = parts[1].trim();
+                } else {
+                    // ካልተከፋፈለ ራሱን ቴክስቱን እንደ አይዲ እንወስዳለን
+                    scannedUserData.id = decodedText.trim();
+                    scannedUserData.name = "ያልታወቀ አባል";
+                }
+
+                // UI ላይ ማሳየት
+                document.getElementById('display-id').innerText = scannedUserData.id;
+                document.getElementById('display-name').innerText = scannedUserData.name;
+
+                // ስካነር መደበቅ እና ፎርም ማሳየት
+                document.getElementById('scanner-section').style.display = 'none';
+                document.getElementById('result-section').style.display = 'block';
+                
+                showToast("መታወቂያው በትክክል ተነቧል!", "success");
+
+            } catch (error) {
+                showToast("ትክክለኛ ያልሆነ የመታወቂያ ኮድ!", "error");
+            }
+        }
+
+        function onScanFailure(error) {
+            // ስካን እያደረገ ሲያጣ ዝም እንዲል
+        }
+
+        // --- 8. ወደ ቴሌግራም መላክ (Telegram API Integration) ---
+        async function submitToTelegram() {
+            const reasonInput = document.getElementById('reason-input');
+            const reason = reasonInput.value.trim();
+            
+            if (!reason) {
+                showToast("እባክዎ የማይመጡበትን ምክንያት ይፃፉ!", "warning");
+                reasonInput.focus();
+                return;
+            }
+
+            // ቁልፉን ሎዲንግ ማድረግ
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+            const submitSpinner = document.getElementById('submit-spinner');
+            
+            submitBtn.disabled = true;
+            submitText.style.display = 'none';
+            submitSpinner.style.display = 'inline-block';
+
+            // የሚያምር የቴሌግራም መልዕክት ቅርፀት
+            const message = `
+🚨 <b>አዲስ የመቅረት ሪፖርት</b>
+━━━━━━━━━━━━━━━━
+👤 <b>ስም:</b> ${scannedUserData.name}
+🆔 <b>መታወቂያ:</b> <code>${scannedUserData.id}</code>
+━━━━━━━━━━━━━━━━
+📝 <b>ምክንያት:</b>
+<i>${reason}</i>
+━━━━━━━━━━━━━━━━
+📱 <i>ከሞባይል ዌብ-አፕ የተላከ</i>
+            `;
+
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            const payload = {
+                chat_id: ADMIN_CHAT_ID,
+                text: message,
+                parse_mode: 'HTML'
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    showToast("ሪፖርትዎ ለሰንበት ትምህርት ቤቱ ደርሷል። እናመሰግናለን!", "success");
+                    // ከ 3 ሰከንድ በኋላ ወደ መጀመሪያው መመለስ
+                    setTimeout(resetApp, 3000);
+                } else {
+                    throw new Error(data.description);
+                }
+            } catch (error) {
+                console.error("Telegram API Error:", error);
+                showToast("ኢንተርኔት የለም ወይም ችግር አጋጥሟል! እንደገና ይሞክሩ።", "error");
+            } finally {
+                // ቁልፉን ወደ ነበረበት መመለስ
+                submitBtn.disabled = false;
+                submitText.style.display = 'inline-block';
+                submitSpinner.style.display = 'none';
+            }
+        }
+
+        // --- 9. አፕሊኬሽኑን ሪሴት ማድረግ (Reset UI) ---
+        function resetApp() {
+            // ፎርሙን ማፅዳት
+            document.getElementById('reason-input').value = '';
+            updateCharCount(document.getElementById('reason-input'));
+            
+            // የካርድ መቀያየር
+            document.getElementById('result-section').style.display = 'none';
+            document.getElementById('scanner-section').style.display = 'block';
+            
+            // ዳታ ማፅዳት
+            scannedUserData = { id: '', name: '' };
+            
+            // ካሜራውን በድጋሚ ማስጀመር (ተጠቃሚው ከፈለገ)
+            startScanner();
+        }
+
+        // ገፁ ሲከፈት በቀጥታ ካሜራውን እንዲከፍት ከፈለጉ ኮመንቱን ያንሱት
+        // window.onload = startScanner;
+
+    </script>
+</body>
+</html>
